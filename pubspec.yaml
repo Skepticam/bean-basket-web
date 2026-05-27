@@ -37,7 +37,7 @@ dependencies:
   google_fonts: ^6.2.1
   url_launcher: ^6.3.2
   visibility_detector: ^0.4.0+2
-  font_awesome_flutter: ^10.8.0
+  font_awesome_flutter: ^11.0.0
 
 dev_dependencies:
   flutter_test:

@@ -64,11 +64,124 @@ class _MenuSectionState extends State<MenuSection> {
             const SizedBox(height: 24),
             LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
+                final bool mobile = constraints.maxWidth < 680;
                 int count = 1;
                 if (constraints.maxWidth >= 1050) {
                   count = 3;
                 } else if (constraints.maxWidth >= 680) {
                   count = 2;
+                }
+
+                Widget buildCard(MenuItem item, int index) {
+                  final bool isHovered = hoveredIndex == index;
+                  final String imageUrl =
+                      'https://picsum.photos/seed/${item.name.replaceAll(' ', '-').toLowerCase()}/900/600';
+
+                  return MouseRegion(
+                    onEnter: (_) => setState(() => hoveredIndex = index),
+                    onExit: (_) => setState(() => hoveredIndex = null),
+                    child: AnimatedScale(
+                      duration: const Duration(milliseconds: 220),
+                      scale: isHovered ? 1.02 : 1,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        transform: Matrix4.translationValues(
+                          0,
+                          isHovered ? -4 : 0,
+                          0,
+                        ),
+                        child: Card(
+                          clipBehavior: Clip.antiAlias,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              AspectRatio(
+                                aspectRatio: mobile ? 1.7 : 2.2,
+                                child: Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (
+                                        BuildContext context,
+                                        Object error,
+                                        StackTrace? stackTrace,
+                                      ) {
+                                        return Container(
+                                          color: const Color(0xFFE9DDCF),
+                                          alignment: Alignment.center,
+                                          child: const Icon(
+                                            Icons.local_cafe_rounded,
+                                            color: AppTheme.coffeeBrown,
+                                            size: 38,
+                                          ),
+                                        );
+                                      },
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        const Icon(
+                                          Icons.local_cafe_rounded,
+                                          color: AppTheme.coffeeBrown,
+                                        ),
+                                        const Spacer(),
+                                        Text(
+                                          item.price,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleLarge
+                                              ?.copyWith(
+                                                color: AppTheme.gardenGreen,
+                                                fontSize: 18,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      item.name,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      item.description,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                if (mobile) {
+                  return Column(
+                    children: List<Widget>.generate(filtered.length, (
+                      int index,
+                    ) {
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: index == filtered.length - 1 ? 0 : 14,
+                        ),
+                        child: buildCard(filtered[index], index),
+                      );
+                    }),
+                  );
                 }
 
                 return GridView.builder(
@@ -77,105 +190,12 @@ class _MenuSectionState extends State<MenuSection> {
                   itemCount: filtered.length,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: count,
-                    childAspectRatio: 1.35,
+                    childAspectRatio: count == 2 ? 0.95 : 1.02,
                     crossAxisSpacing: 14,
                     mainAxisSpacing: 14,
                   ),
                   itemBuilder: (BuildContext context, int index) {
-                    final MenuItem item = filtered[index];
-                    final bool isHovered = hoveredIndex == index;
-                    final String imageUrl =
-                        'https://picsum.photos/seed/${item.name.replaceAll(' ', '-').toLowerCase()}/900/600';
-
-                    return MouseRegion(
-                      onEnter: (_) => setState(() => hoveredIndex = index),
-                      onExit: (_) => setState(() => hoveredIndex = null),
-                      child: AnimatedScale(
-                        duration: const Duration(milliseconds: 220),
-                        scale: isHovered ? 1.02 : 1,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 220),
-                          transform: Matrix4.translationValues(
-                            0,
-                            isHovered ? -4 : 0,
-                            0,
-                          ),
-                          child: Card(
-                            clipBehavior: Clip.antiAlias,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                AspectRatio(
-                                  aspectRatio: 2.2,
-                                  child: Image.network(
-                                    imageUrl,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (
-                                          BuildContext context,
-                                          Object error,
-                                          StackTrace? stackTrace,
-                                        ) {
-                                          return Container(
-                                            color: const Color(0xFFE9DDCF),
-                                            alignment: Alignment.center,
-                                            child: const Icon(
-                                              Icons.local_cafe_rounded,
-                                              color: AppTheme.coffeeBrown,
-                                              size: 38,
-                                            ),
-                                          );
-                                        },
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Row(
-                                        children: <Widget>[
-                                          const Icon(
-                                            Icons.local_cafe_rounded,
-                                            color: AppTheme.coffeeBrown,
-                                          ),
-                                          const Spacer(),
-                                          Text(
-                                            item.price,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleLarge
-                                                ?.copyWith(
-                                                  color: AppTheme.gardenGreen,
-                                                  fontSize: 18,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        item.name,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleLarge,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        item.description,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
+                    return buildCard(filtered[index], index);
                   },
                 );
               },

@@ -19,7 +19,9 @@ class FooterWidget extends StatelessWidget {
   final VoidCallback onLocation;
 
   static final Uri instagramUri = Uri.parse('https://www.instagram.com/');
-  static final Uri facebookUri = Uri.parse('https://www.facebook.com/');
+  static final Uri facebookUri = Uri.parse(
+    'https://www.facebook.com/BeanBasket22',
+  );
   static final Uri tiktokUri = Uri.parse('https://www.tiktok.com/');
 
   Future<void> _openExternal(Uri uri) async {

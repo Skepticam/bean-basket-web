@@ -101,6 +101,153 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
     final bool narrow = MediaQuery.sizeOf(context).width < 900;
     final _FeaturedProduct product = _products[_currentIndex];
 
+    if (narrow) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 56),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'Featured Products',
+                style: Theme.of(
+                  context,
+                ).textTheme.displayMedium?.copyWith(fontSize: 36),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: MediaQuery.sizeOf(context).height * 0.86,
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: _products.length,
+                  onPageChanged: (int value) {
+                    setState(() => _currentIndex = value);
+                    _startAutoSlide();
+                  },
+                  itemBuilder: (BuildContext context, int index) {
+                    final _FeaturedProduct p = _products[index];
+                    return Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF6EFE6),
+                        borderRadius: BorderRadius.circular(26),
+                        border: Border.all(color: const Color(0x225C3D2E)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: AspectRatio(
+                              aspectRatio: 1.05,
+                              child: Image.network(
+                                p.imageUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder:
+                                    (
+                                      BuildContext context,
+                                      Object error,
+                                      StackTrace? stackTrace,
+                                    ) {
+                                      return Container(
+                                        color: const Color(0xFFE7D8C5),
+                                        alignment: Alignment.center,
+                                        child: const Icon(
+                                          Icons.local_cafe_rounded,
+                                          size: 64,
+                                          color: AppTheme.coffeeBrown,
+                                        ),
+                                      );
+                                    },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            p.name,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleLarge?.copyWith(fontSize: 26),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            p.description,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            p.price,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: AppTheme.gardenGreen,
+                                  fontSize: 24,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(p.badge),
+                          const Spacer(),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: () {},
+                              icon: const Icon(Icons.shopping_bag_rounded),
+                              label: const Text('Order Featured Drink'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AppTheme.coffeeBrown,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    onPressed: _prev,
+                    tooltip: 'Previous featured product',
+                    icon: const Icon(Icons.chevron_left_rounded),
+                  ),
+                  ...List<Widget>.generate(_products.length, (int index) {
+                    final bool active = index == _currentIndex;
+                    return GestureDetector(
+                      onTap: () => _goTo(index),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        width: active ? 24 : 8,
+                        height: 8,
+                        margin: const EdgeInsets.only(right: 6),
+                        decoration: BoxDecoration(
+                          color: active
+                              ? AppTheme.coffeeBrown
+                              : const Color(0x555C3D2E),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    );
+                  }),
+                  IconButton(
+                    onPressed: _next,
+                    tooltip: 'Next featured product',
+                    icon: const Icon(Icons.chevron_right_rounded),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 70),
       child: ConstrainedBox(

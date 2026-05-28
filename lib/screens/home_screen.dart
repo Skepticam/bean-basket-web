@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -27,13 +28,14 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = ScrollController();
 
-  double _scrollOffset = 0;
   bool _headerVisible = false;
+  bool _useSmoothWheel = false;
+  double? _wheelTargetOffset;
+  DateTime? _lastWheelEventAt;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -44,23 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _scrollController
-      ..removeListener(_onScroll)
-      ..dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (!_scrollController.hasClients) {
-      return;
-    }
-
-    setState(() {
-      _scrollOffset = _scrollController.offset;
-    });
-  }
-
-  static final Uri orderUri = Uri.parse('https://www.foodpanda.ph/');
+  static final Uri orderUri = Uri.parse(
+    'https://www.foodpanda.ph/restaurant/fvpk/bean-basket-cafe-nursery-road',
+  );
 
   Future<void> _openOrderLink() async {
     await launchUrl(orderUri, mode: LaunchMode.platformDefault);
@@ -92,8 +84,59 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  bool _shouldUseSmoothWheel(BuildContext context) {
+    switch (Theme.of(context).platform) {
+      case TargetPlatform.windows:
+      case TargetPlatform.macOS:
+      case TargetPlatform.linux:
+        return true;
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+      case TargetPlatform.fuchsia:
+        return false;
+    }
+  }
+
+  void _handlePointerSignal(PointerSignalEvent signal) {
+    if (!_useSmoothWheel ||
+        signal is! PointerScrollEvent ||
+        !_scrollController.hasClients) {
+      return;
+    }
+
+    final ScrollPosition position = _scrollController.position;
+    final double delta = signal.scrollDelta.dy;
+    if (delta == 0) {
+      return;
+    }
+
+    final DateTime now = DateTime.now();
+    if (_lastWheelEventAt == null ||
+        now.difference(_lastWheelEventAt!) >
+            const Duration(milliseconds: 140)) {
+      _wheelTargetOffset = position.pixels;
+    }
+    _lastWheelEventAt = now;
+
+    final double step = (delta * 0.68).clamp(-220, 220).toDouble();
+    final double base = _wheelTargetOffset ?? position.pixels;
+    final double next = (base + step).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+    _wheelTargetOffset = next;
+
+    _scrollController.animateTo(
+      next,
+      duration: const Duration(milliseconds: 240),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    _useSmoothWheel = _shouldUseSmoothWheel(context);
+
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppTheme.cream,
@@ -166,68 +209,74 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              child: Column(
-                children: <Widget>[
-                  RevealOnScroll(
-                    threshold: 0.01,
-                    offset: const Offset(0, 0.03),
-                    child: HeroSection(
-                      scrollOffset: _scrollOffset,
-                      onViewMenu: () => _handleSectionTap('menu'),
-                      onDirections: () => _handleSectionTap('location'),
-                    ),
-                  ),
-                  Container(
-                    key: _aboutKey,
-                    child: const RevealOnScroll(
-                      offset: Offset(0.08, 0),
-                      child: AboutSection(),
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    color: const Color(0xFFF6EFE6),
-                    child: Container(
-                      key: _menuKey,
-                      child: const RevealOnScroll(
-                        offset: Offset(-0.08, 0),
-                        child: MenuSection(),
+            child: Listener(
+              onPointerSignal: _handlePointerSignal,
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                physics: _useSmoothWheel
+                    ? const NeverScrollableScrollPhysics()
+                    : null,
+                child: Column(
+                  children: <Widget>[
+                    RevealOnScroll(
+                      threshold: 0.01,
+                      offset: const Offset(0, 0.03),
+                      child: HeroSection(
+                        scrollController: _scrollController,
+                        onViewMenu: () => _handleSectionTap('menu'),
+                        onDirections: () => _handleSectionTap('location'),
                       ),
                     ),
-                  ),
-                  const RevealOnScroll(
-                    delay: Duration(milliseconds: 120),
-                    offset: Offset(0, 0.06),
-                    child: FeaturedProductSection(),
-                  ),
-                  Container(
-                    key: _galleryKey,
-                    child: const RevealOnScroll(
-                      delay: Duration(milliseconds: 100),
-                      child: GallerySection(),
+                    Container(
+                      key: _aboutKey,
+                      child: const RevealOnScroll(
+                        offset: Offset(0.08, 0),
+                        child: AboutSection(),
+                      ),
                     ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    color: const Color(0xFFF6EFE6),
-                    child: Container(
-                      key: _locationKey,
+                    const RevealOnScroll(
+                      delay: Duration(milliseconds: 120),
+                      offset: Offset(0, 0.06),
+                      child: FeaturedProductSection(),
+                    ),
+                    Container(
+                      width: double.infinity,
+                      color: const Color(0xFFF6EFE6),
+                      child: Container(
+                        key: _menuKey,
+                        child: const RevealOnScroll(
+                          offset: Offset(-0.08, 0),
+                          child: MenuSection(),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      key: _galleryKey,
                       child: const RevealOnScroll(
                         delay: Duration(milliseconds: 100),
-                        offset: Offset(0, 0.08),
-                        child: LocationSection(),
+                        child: GallerySection(),
                       ),
                     ),
-                  ),
-                  FooterWidget(
-                    onAbout: () => _handleSectionTap('about'),
-                    onMenu: () => _handleSectionTap('menu'),
-                    onGallery: () => _handleSectionTap('gallery'),
-                    onLocation: () => _handleSectionTap('location'),
-                  ),
-                ],
+                    Container(
+                      width: double.infinity,
+                      color: const Color(0xFFF6EFE6),
+                      child: Container(
+                        key: _locationKey,
+                        child: const RevealOnScroll(
+                          delay: Duration(milliseconds: 100),
+                          offset: Offset(0, 0.08),
+                          child: LocationSection(),
+                        ),
+                      ),
+                    ),
+                    FooterWidget(
+                      onAbout: () => _handleSectionTap('about'),
+                      onMenu: () => _handleSectionTap('menu'),
+                      onGallery: () => _handleSectionTap('gallery'),
+                      onLocation: () => _handleSectionTap('location'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

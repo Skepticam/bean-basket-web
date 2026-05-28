@@ -7,21 +7,17 @@ class HeroSection extends StatelessWidget {
     super.key,
     required this.onViewMenu,
     required this.onDirections,
-    required this.scrollOffset,
+    required this.scrollController,
   });
 
   final VoidCallback onViewMenu;
   final VoidCallback onDirections;
-  final double scrollOffset;
+  final ScrollController scrollController;
 
   @override
   Widget build(BuildContext context) {
     final bool isMobile = MediaQuery.sizeOf(context).width < 700;
     final double heroHeight = isMobile ? 560 : 680;
-    final double backgroundShift = (scrollOffset * 0.22).clamp(
-      0,
-      heroHeight * 0.30,
-    );
 
     return SizedBox(
       height: heroHeight,
@@ -29,8 +25,22 @@ class HeroSection extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: <Widget>[
-            Transform.translate(
-              offset: Offset(0, backgroundShift),
+            AnimatedBuilder(
+              animation: scrollController,
+              builder: (BuildContext context, Widget? child) {
+                final double offset = scrollController.hasClients
+                    ? scrollController.offset
+                    : 0;
+                final double backgroundShift = (offset * 0.22).clamp(
+                  0,
+                  heroHeight * 0.30,
+                );
+
+                return Transform.translate(
+                  offset: Offset(0, backgroundShift),
+                  child: child,
+                );
+              },
               child: OverflowBox(
                 minHeight: heroHeight,
                 maxHeight: heroHeight * 1.5,
@@ -40,6 +50,7 @@ class HeroSection extends StatelessWidget {
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: heroHeight * 1.5,
+                  filterQuality: FilterQuality.low,
                 ),
               ),
             ),

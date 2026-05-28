@@ -29,7 +29,7 @@ class _MenuSectionState extends State<MenuSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              'Menu Highlights',
+              'Full Menu',
               style: Theme.of(
                 context,
               ).textTheme.displayMedium?.copyWith(fontSize: 40),
@@ -96,7 +96,7 @@ class _MenuSectionState extends State<MenuSection> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               AspectRatio(
-                                aspectRatio: mobile ? 1.7 : 2.2,
+                                aspectRatio: mobile ? 1.35 : 2.0,
                                 child: Image.network(
                                   imageUrl,
                                   fit: BoxFit.cover,
@@ -119,7 +119,7 @@ class _MenuSectionState extends State<MenuSection> {
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(12),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
@@ -139,21 +139,28 @@ class _MenuSectionState extends State<MenuSection> {
                                               .titleLarge
                                               ?.copyWith(
                                                 color: AppTheme.gardenGreen,
-                                                fontSize: 18,
+                                                fontSize: mobile ? 14 : 16,
                                               ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 6),
                                     Text(
                                       item.name,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleLarge,
+                                      maxLines: mobile ? 2 : 3,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge
+                                          ?.copyWith(
+                                            fontSize: mobile ? 16 : 18,
+                                          ),
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 6),
                                     Text(
                                       item.description,
+                                      maxLines: mobile ? 2 : 3,
+                                      overflow: TextOverflow.ellipsis,
                                       style: Theme.of(
                                         context,
                                       ).textTheme.bodyMedium,
@@ -191,7 +198,7 @@ class _MenuSectionState extends State<MenuSection> {
                   itemCount: filtered.length,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: count,
-                    childAspectRatio: count == 2 ? 0.95 : 1.02,
+                    childAspectRatio: count == 2 ? 1.12 : 1.28,
                     crossAxisSpacing: 14,
                     mainAxisSpacing: 14,
                   ),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class GallerySection extends StatefulWidget {
@@ -9,12 +11,35 @@ class GallerySection extends StatefulWidget {
 
 class _GallerySectionState extends State<GallerySection> {
   final PageController _mobileController = PageController();
+  Timer? _autoTimer;
   int _mobileIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    _startAutoPlay();
+  }
+
+  @override
   void dispose() {
+    _autoTimer?.cancel();
     _mobileController.dispose();
     super.dispose();
+  }
+
+  void _startAutoPlay() {
+    _autoTimer?.cancel();
+    _autoTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted || !_mobileController.hasClients) {
+        return;
+      }
+      final int next = (_mobileIndex + 1) % imageUrls.length;
+      _mobileController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOutCubic,
+      );
+    });
   }
 
   static const List<String> imageUrls = <String>[
@@ -61,6 +86,7 @@ class _GallerySectionState extends State<GallerySection> {
                             itemCount: imageUrls.length,
                             onPageChanged: (int index) {
                               setState(() => _mobileIndex = index);
+                              _startAutoPlay();
                             },
                             itemBuilder: (BuildContext context, int index) {
                               return Image.network(

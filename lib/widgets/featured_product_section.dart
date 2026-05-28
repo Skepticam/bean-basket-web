@@ -15,11 +15,15 @@ class FeaturedProductSection extends StatefulWidget {
 
 class _FeaturedProductSectionState extends State<FeaturedProductSection>
     with SingleTickerProviderStateMixin {
+  static const String _foodpandaLogoUrl =
+      'https://www.foodpanda.com/wp-content/uploads/2024/05/foodpanda-logo-RGB-horizontal.png';
   late final AnimationController _floatController;
   late final PageController _pageController;
   Timer? _autoTimer;
   int _currentIndex = 0;
-  static final Uri _orderUri = Uri.parse('https://www.foodpanda.ph/');
+  static final Uri _orderUri = Uri.parse(
+    'https://www.foodpanda.ph/restaurant/fvpk/bean-basket-cafe-nursery-road',
+  );
 
   static const List<_FeaturedProduct> _products = <_FeaturedProduct>[
     _FeaturedProduct(
@@ -105,6 +109,8 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
   @override
   Widget build(BuildContext context) {
     final bool narrow = MediaQuery.sizeOf(context).width < 900;
+    final double mobileCardHeight = (MediaQuery.sizeOf(context).height * 0.9)
+        .clamp(640.0, 920.0);
     final _FeaturedProduct product = _products[_currentIndex];
 
     if (narrow) {
@@ -123,7 +129,7 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
               ),
               const SizedBox(height: 12),
               SizedBox(
-                height: MediaQuery.sizeOf(context).height * 0.86,
+                height: mobileCardHeight,
                 child: PageView.builder(
                   controller: _pageController,
                   itemCount: _products.length,
@@ -171,58 +177,35 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    p.name,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.copyWith(fontSize: 26),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    p.description,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    p.price,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.copyWith(
-                                          color: AppTheme.gardenGreen,
-                                          fontSize: 24,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(p.badge),
-                                ],
-                              ),
-                            ),
+                          Text(
+                            p.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleLarge?.copyWith(fontSize: 24),
                           ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton.icon(
-                              onPressed: _openOrderLink,
-                              icon: const Icon(Icons.shopping_bag_rounded),
-                              label: const Text('Order Featured Drink'),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: AppTheme.coffeeBrown,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
+                          const SizedBox(height: 8),
+                          Text(
+                            p.description,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            p.price,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: AppTheme.gardenGreen,
+                                  fontSize: 22,
                                 ),
-                              ),
-                            ),
                           ),
+                          const SizedBox(height: 4),
+                          Text(p.badge),
+                          const Spacer(),
+                          const SizedBox(height: 12),
+                          _buildOrderAtFoodpandaButton(fullWidth: true),
                         ],
                       ),
                     );
@@ -377,18 +360,54 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
           }),
         ),
         const SizedBox(height: 20),
-        FilledButton.icon(
-          onPressed: _openOrderLink,
-          icon: const Icon(Icons.shopping_bag_rounded),
-          label: const Text('Order Featured Drink'),
-          style: FilledButton.styleFrom(
-            backgroundColor: AppTheme.coffeeBrown,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          ),
-        ),
+        _buildOrderAtFoodpandaButton(),
       ],
     );
+  }
+
+  Widget _buildOrderAtFoodpandaButton({bool fullWidth = false}) {
+    final Widget button = FilledButton(
+      onPressed: _openOrderLink,
+      style: FilledButton.styleFrom(
+        backgroundColor: const Color(0xFFD70F64),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Container(
+            height: 24,
+            width: 78,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Image.network(
+              _foodpandaLogoUrl,
+              fit: BoxFit.contain,
+              errorBuilder:
+                  (BuildContext context, Object error, StackTrace? stackTrace) {
+                    return const Icon(
+                      Icons.delivery_dining_rounded,
+                      size: 14,
+                      color: Color(0xFFD70F64),
+                    );
+                  },
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Text('Order at foodpanda'),
+        ],
+      ),
+    );
+
+    if (fullWidth) {
+      return SizedBox(width: double.infinity, child: button);
+    }
+
+    return button;
   }
 
   Widget _buildAnimatedImage(String activeImageUrl) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/app_theme.dart';
@@ -9,13 +10,36 @@ class LocationSection extends StatelessWidget {
   static const String _localMapAsset =
       'assets/images/bean_basket_location_map.png';
 
-  static final Uri mapsUri = Uri.parse(
-    'https://maps.app.goo.gl/xVo6Zr9rdLpmXRJt8',
+  static const String _mapsQuery =
+      'Bean Basket Garden Cafe Nursery Road, General Santos City, South Cotabato, Philippines';
+  static final Uri _mapsWebUri = Uri.parse(
+    'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(_mapsQuery)}',
+  );
+  static final Uri _mapsGeoUri = Uri.parse(
+    'geo:0,0?q=${Uri.encodeComponent(_mapsQuery)}',
+  );
+  static final Uri _mapsIosAppUri = Uri.parse(
+    'comgooglemaps://?q=${Uri.encodeComponent(_mapsQuery)}',
   );
 
   Future<void> _openMap() async {
-    if (!await launchUrl(mapsUri, mode: LaunchMode.platformDefault)) {
-      throw Exception('Could not open map URL');
+    final List<Uri> candidates = kIsWeb
+        ? <Uri>[_mapsWebUri]
+        : <Uri>[
+            if (defaultTargetPlatform == TargetPlatform.android) _mapsGeoUri,
+            if (defaultTargetPlatform == TargetPlatform.iOS) _mapsIosAppUri,
+            _mapsWebUri,
+          ];
+
+    for (final Uri candidate in candidates) {
+      if (await canLaunchUrl(candidate) &&
+          await launchUrl(candidate, mode: LaunchMode.platformDefault)) {
+        return;
+      }
+    }
+
+    if (!await launchUrl(_mapsWebUri, mode: LaunchMode.platformDefault)) {
+      throw Exception('Could not open Google Maps');
     }
   }
 
@@ -47,10 +71,7 @@ class LocationSection extends StatelessWidget {
                     children: <Widget>[
                       _LocationDetails(openMap: _openMap),
                       const SizedBox(height: 20),
-                      SizedBox(
-                        height: 260,
-                        child: _MapImage(openMap: _openMap),
-                      ),
+                      SizedBox(height: 260, child: const _MapImage()),
                     ],
                   );
                 }
@@ -62,7 +83,7 @@ class LocationSection extends StatelessWidget {
                     children: <Widget>[
                       Expanded(child: _LocationDetails(openMap: _openMap)),
                       const SizedBox(width: 24),
-                      Expanded(child: _MapImage(openMap: _openMap)),
+                      const Expanded(child: _MapImage()),
                     ],
                   ),
                 );
@@ -115,61 +136,55 @@ class _LocationDetails extends StatelessWidget {
 }
 
 class _MapImage extends StatelessWidget {
-  const _MapImage({required this.openMap});
-
-  final Future<void> Function() openMap;
+  const _MapImage();
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: openMap,
+    return ClipRRect(
       borderRadius: BorderRadius.circular(18),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            Image.asset(
-              LocationSection._localMapAsset,
-              fit: BoxFit.cover,
-              filterQuality: FilterQuality.high,
-              errorBuilder:
-                  (BuildContext context, Object error, StackTrace? stackTrace) {
-                    return Container(
-                      color: const Color(0xFF2F4638),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.map_outlined,
-                        color: Color(0xFFD6E6DA),
-                        size: 56,
-                      ),
-                    );
-                  },
-            ),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: <Color>[Color(0x22000000), Color(0x88000000)],
-                ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          Image.asset(
+            LocationSection._localMapAsset,
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.high,
+            errorBuilder:
+                (BuildContext context, Object error, StackTrace? stackTrace) {
+                  return Container(
+                    color: const Color(0xFF2F4638),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.map_outlined,
+                      color: Color(0xFFD6E6DA),
+                      size: 56,
+                    ),
+                  );
+                },
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: <Color>[Color(0x22000000), Color(0x88000000)],
               ),
             ),
-            const Positioned(
-              left: 12,
-              right: 12,
-              bottom: 12,
-              child: Text(
-                'Bean Basket Garden Cafe',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+          ),
+          const Positioned(
+            left: 12,
+            right: 12,
+            bottom: 12,
+            child: Text(
+              'Bean Basket Garden Cafe',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

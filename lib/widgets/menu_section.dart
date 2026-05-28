@@ -29,7 +29,7 @@ class _MenuSectionState extends State<MenuSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              'Full Menu',
+              'Menu Highlights',
               style: Theme.of(
                 context,
               ).textTheme.displayMedium?.copyWith(fontSize: 40),

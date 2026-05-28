@@ -64,7 +64,7 @@ class FooterWidget extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Open hours: 8:00 AM - 10:00 PM\nPhone: 0912-345-6789',
+                'Open hours: Please update with current schedule\nPhone: Please add store contact number',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Color(0xFFDBC3A6), height: 1.6),
               ),

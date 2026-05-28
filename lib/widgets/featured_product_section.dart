@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -15,14 +16,15 @@ class FeaturedProductSection extends StatefulWidget {
 
 class _FeaturedProductSectionState extends State<FeaturedProductSection>
     with SingleTickerProviderStateMixin {
-  static const String _foodpandaLogoUrl =
-      'https://www.foodpanda.com/wp-content/uploads/2024/05/foodpanda-logo-RGB-horizontal.png';
   late final AnimationController _floatController;
   late final PageController _pageController;
   Timer? _autoTimer;
   int _currentIndex = 0;
-  static final Uri _orderUri = Uri.parse(
+  static final Uri _foodpandaWebUri = Uri.parse(
     'https://www.foodpanda.ph/restaurant/fvpk/bean-basket-cafe-nursery-road',
+  );
+  static final Uri _foodpandaAppUri = Uri.parse(
+    'foodpanda://restaurant/fvpk/bean-basket-cafe-nursery-road',
   );
 
   static const List<_FeaturedProduct> _products = <_FeaturedProduct>[
@@ -103,7 +105,18 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
       _goTo((_currentIndex - 1 + _products.length) % _products.length);
 
   Future<void> _openOrderLink() async {
-    await launchUrl(_orderUri, mode: LaunchMode.platformDefault);
+    final List<Uri> candidates = kIsWeb
+        ? <Uri>[_foodpandaWebUri]
+        : <Uri>[_foodpandaAppUri, _foodpandaWebUri];
+
+    for (final Uri candidate in candidates) {
+      if (await canLaunchUrl(candidate) &&
+          await launchUrl(candidate, mode: LaunchMode.platformDefault)) {
+        return;
+      }
+    }
+
+    await launchUrl(_foodpandaWebUri, mode: LaunchMode.platformDefault);
   }
 
   @override
@@ -205,7 +218,21 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
                           Text(p.badge),
                           const Spacer(),
                           const SizedBox(height: 12),
-                          _buildOrderAtFoodpandaButton(fullWidth: true),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: _openOrderLink,
+                              icon: const Icon(Icons.shopping_bag_rounded),
+                              label: const Text('Order Featured Drink'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AppTheme.coffeeBrown,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     );
@@ -360,54 +387,18 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
           }),
         ),
         const SizedBox(height: 20),
-        _buildOrderAtFoodpandaButton(),
+        FilledButton.icon(
+          onPressed: _openOrderLink,
+          icon: const Icon(Icons.shopping_bag_rounded),
+          label: const Text('Order Featured Drink'),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppTheme.coffeeBrown,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          ),
+        ),
       ],
     );
-  }
-
-  Widget _buildOrderAtFoodpandaButton({bool fullWidth = false}) {
-    final Widget button = FilledButton(
-      onPressed: _openOrderLink,
-      style: FilledButton.styleFrom(
-        backgroundColor: const Color(0xFFD70F64),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Container(
-            height: 24,
-            width: 78,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Image.network(
-              _foodpandaLogoUrl,
-              fit: BoxFit.contain,
-              errorBuilder:
-                  (BuildContext context, Object error, StackTrace? stackTrace) {
-                    return const Icon(
-                      Icons.delivery_dining_rounded,
-                      size: 14,
-                      color: Color(0xFFD70F64),
-                    );
-                  },
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Text('Order at foodpanda'),
-        ],
-      ),
-    );
-
-    if (fullWidth) {
-      return SizedBox(width: double.infinity, child: button);
-    }
-
-    return button;
   }
 
   Widget _buildAnimatedImage(String activeImageUrl) {

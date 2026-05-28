@@ -1,4 +1,5 @@
 import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -50,12 +51,26 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  static final Uri orderUri = Uri.parse(
+  static final Uri _foodpandaWebUri = Uri.parse(
     'https://www.foodpanda.ph/restaurant/fvpk/bean-basket-cafe-nursery-road',
+  );
+  static final Uri _foodpandaAppUri = Uri.parse(
+    'foodpanda://restaurant/fvpk/bean-basket-cafe-nursery-road',
   );
 
   Future<void> _openOrderLink() async {
-    await launchUrl(orderUri, mode: LaunchMode.platformDefault);
+    final List<Uri> candidates = kIsWeb
+        ? <Uri>[_foodpandaWebUri]
+        : <Uri>[_foodpandaAppUri, _foodpandaWebUri];
+
+    for (final Uri candidate in candidates) {
+      if (await canLaunchUrl(candidate) &&
+          await launchUrl(candidate, mode: LaunchMode.platformDefault)) {
+        return;
+      }
+    }
+
+    await launchUrl(_foodpandaWebUri, mode: LaunchMode.platformDefault);
   }
 
   Future<void> _scrollTo(GlobalKey key) async {

@@ -170,14 +170,15 @@ class _MenuSectionState extends State<MenuSection> {
                 }
 
                 if (mobile) {
-                  return Column(
+                  final double itemWidth = (constraints.maxWidth - 14) / 2;
+                  return Wrap(
+                    spacing: 14,
+                    runSpacing: 14,
                     children: List<Widget>.generate(filtered.length, (
                       int index,
                     ) {
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index == filtered.length - 1 ? 0 : 14,
-                        ),
+                      return SizedBox(
+                        width: itemWidth,
                         child: buildCard(filtered[index], index),
                       );
                     }),

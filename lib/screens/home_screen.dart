@@ -60,9 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  static final Uri orderUri = Uri.parse(
-    'https://www.google.com/maps/place/Bean+Basket+Garden+Cafe/',
-  );
+  static final Uri orderUri = Uri.parse('https://www.foodpanda.ph/');
 
   Future<void> _openOrderLink() async {
     await launchUrl(orderUri, mode: LaunchMode.platformDefault);

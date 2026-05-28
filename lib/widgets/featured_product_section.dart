@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/app_theme.dart';
 
@@ -18,13 +19,14 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
   late final PageController _pageController;
   Timer? _autoTimer;
   int _currentIndex = 0;
+  static final Uri _orderUri = Uri.parse('https://www.foodpanda.ph/');
 
   static const List<_FeaturedProduct> _products = <_FeaturedProduct>[
     _FeaturedProduct(
       name: 'Garden Signature Iced Latte',
       description:
           'Velvety espresso with chilled milk, caramel cloud foam, and a touch of sea salt.',
-      price: 'PHP 165',
+      price: '₱165',
       badge: 'Seasonal favorite',
       imageUrl:
           'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=1600',
@@ -33,7 +35,7 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
       name: 'Honey Cinnamon Cappuccino',
       description:
           'Creamy microfoam cappuccino sweetened with local honey and a dusting of cinnamon.',
-      price: 'PHP 155',
+      price: '₱155',
       badge: 'Bestseller',
       imageUrl:
           'https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=1600',
@@ -42,7 +44,7 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
       name: 'Strawberry Matcha Latte',
       description:
           'Layered ceremonial matcha and strawberry cream with smooth milk for a bright finish.',
-      price: 'PHP 170',
+      price: '₱170',
       badge: 'New release',
       imageUrl:
           'https://images.pexels.com/photos/5946665/pexels-photo-5946665.jpeg?auto=compress&cs=tinysrgb&w=1600',
@@ -95,6 +97,10 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
 
   void _prev() =>
       _goTo((_currentIndex - 1 + _products.length) % _products.length);
+
+  Future<void> _openOrderLink() async {
+    await launchUrl(_orderUri, mode: LaunchMode.platformDefault);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,34 +170,48 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
                               ),
                             ),
                           ),
-                          const SizedBox(height: 14),
-                          Text(
-                            p.name,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.titleLarge?.copyWith(fontSize: 26),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    p.name,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(fontSize: 26),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    p.description,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    p.price,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          color: AppTheme.gardenGreen,
+                                          fontSize: 24,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(p.badge),
+                                ],
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            p.description,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            p.price,
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  color: AppTheme.gardenGreen,
-                                  fontSize: 24,
-                                ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(p.badge),
-                          const Spacer(),
+                          const SizedBox(height: 12),
                           SizedBox(
                             width: double.infinity,
                             child: FilledButton.icon(
-                              onPressed: () {},
+                              onPressed: _openOrderLink,
                               icon: const Icon(Icons.shopping_bag_rounded),
                               label: const Text('Order Featured Drink'),
                               style: FilledButton.styleFrom(
@@ -358,7 +378,7 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
         ),
         const SizedBox(height: 20),
         FilledButton.icon(
-          onPressed: () {},
+          onPressed: _openOrderLink,
           icon: const Icon(Icons.shopping_bag_rounded),
           label: const Text('Order Featured Drink'),
           style: FilledButton.styleFrom(

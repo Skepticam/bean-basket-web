@@ -217,22 +217,6 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
                           const SizedBox(height: 4),
                           Text(p.badge),
                           const Spacer(),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton.icon(
-                              onPressed: _openOrderLink,
-                              icon: const Icon(Icons.shopping_bag_rounded),
-                              label: const Text('Order Featured Drink'),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: AppTheme.coffeeBrown,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     );
@@ -272,6 +256,8 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              _buildOrderAtFoodpandaButton(fullWidth: true),
             ],
           ),
         ),
@@ -387,18 +373,28 @@ class _FeaturedProductSectionState extends State<FeaturedProductSection>
           }),
         ),
         const SizedBox(height: 20),
-        FilledButton.icon(
-          onPressed: _openOrderLink,
-          icon: const Icon(Icons.shopping_bag_rounded),
-          label: const Text('Order Featured Drink'),
-          style: FilledButton.styleFrom(
-            backgroundColor: AppTheme.coffeeBrown,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          ),
-        ),
+        _buildOrderAtFoodpandaButton(),
       ],
     );
+  }
+
+  Widget _buildOrderAtFoodpandaButton({bool fullWidth = false}) {
+    final Widget button = FilledButton.icon(
+      onPressed: _openOrderLink,
+      icon: const Icon(Icons.shopping_bag_rounded),
+      label: const Text('Order at foodpanda'),
+      style: FilledButton.styleFrom(
+        backgroundColor: AppTheme.coffeeBrown,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      ),
+    );
+
+    if (fullWidth) {
+      return SizedBox(width: double.infinity, child: button);
+    }
+
+    return button;
   }
 
   Widget _buildAnimatedImage(String activeImageUrl) {

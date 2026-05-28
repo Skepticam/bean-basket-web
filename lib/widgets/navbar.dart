@@ -41,7 +41,7 @@ class BeanNavBar extends StatelessWidget {
               const Icon(Icons.local_cafe_rounded, color: AppTheme.coffeeBrown),
               const SizedBox(width: 10),
               Text(
-                'Bean Basket',
+                'Bean Basket Garden Cafe',
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(color: AppTheme.coffeeBrown),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -22,6 +24,31 @@ class RevealOnScroll extends StatefulWidget {
 class _RevealOnScrollState extends State<RevealOnScroll> {
   bool _revealed = false;
   final Key _detectorKey = UniqueKey();
+  Timer? _revealTimer;
+  Timer? _fallbackTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _fallbackTimer = Timer(
+      widget.delay + const Duration(milliseconds: 1500),
+      _reveal,
+    );
+  }
+
+  @override
+  void dispose() {
+    _revealTimer?.cancel();
+    _fallbackTimer?.cancel();
+    super.dispose();
+  }
+
+  void _reveal() {
+    if (!mounted || _revealed) {
+      return;
+    }
+    setState(() => _revealed = true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +59,13 @@ class _RevealOnScrollState extends State<RevealOnScroll> {
           return;
         }
 
-        if (mounted) {
-          setState(() => _revealed = true);
+        _revealTimer?.cancel();
+        if (widget.delay == Duration.zero) {
+          _reveal();
+          return;
         }
+
+        _revealTimer = Timer(widget.delay, _reveal);
       },
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 640),

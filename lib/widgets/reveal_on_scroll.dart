@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -25,21 +26,24 @@ class _RevealOnScrollState extends State<RevealOnScroll> {
   bool _revealed = false;
   final Key _detectorKey = UniqueKey();
   Timer? _revealTimer;
-  Timer? _fallbackTimer;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
-    _fallbackTimer = Timer(
-      widget.delay + const Duration(milliseconds: 1500),
-      _reveal,
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndMaybeReveal();
+    });
+    _pollTimer = Timer.periodic(
+      const Duration(milliseconds: 220),
+      (_) => _checkAndMaybeReveal(),
     );
   }
 
   @override
   void dispose() {
     _revealTimer?.cancel();
-    _fallbackTimer?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
   }
 
@@ -48,6 +52,53 @@ class _RevealOnScrollState extends State<RevealOnScroll> {
       return;
     }
     setState(() => _revealed = true);
+    _pollTimer?.cancel();
+  }
+
+  void _checkAndMaybeReveal() {
+    if (!mounted || _revealed) {
+      return;
+    }
+
+    final BuildContext localContext = context;
+    final RenderObject? renderObject = localContext.findRenderObject();
+    if (renderObject is! RenderBox || !renderObject.hasSize) {
+      return;
+    }
+
+    final double widgetTop = renderObject.localToGlobal(Offset.zero).dy;
+    final double widgetHeight = renderObject.size.height;
+    if (widgetHeight <= 0) {
+      return;
+    }
+
+    final double widgetBottom = widgetTop + widgetHeight;
+    final double viewportTop = 0;
+    final double viewportBottom = MediaQuery.sizeOf(localContext).height;
+    final double visiblePixels =
+        math.min(widgetBottom, viewportBottom) -
+        math.max(widgetTop, viewportTop);
+    final double visibleFraction = (visiblePixels / widgetHeight).clamp(0, 1);
+
+    if (visibleFraction < widget.threshold) {
+      return;
+    }
+
+    _scheduleReveal();
+  }
+
+  void _scheduleReveal() {
+    if (_revealed) {
+      return;
+    }
+
+    _revealTimer?.cancel();
+    if (widget.delay == Duration.zero) {
+      _reveal();
+      return;
+    }
+
+    _revealTimer = Timer(widget.delay, _reveal);
   }
 
   @override
@@ -58,14 +109,7 @@ class _RevealOnScrollState extends State<RevealOnScroll> {
         if (_revealed || info.visibleFraction < widget.threshold) {
           return;
         }
-
-        _revealTimer?.cancel();
-        if (widget.delay == Duration.zero) {
-          _reveal();
-          return;
-        }
-
-        _revealTimer = Timer(widget.delay, _reveal);
+        _scheduleReveal();
       },
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 640),
